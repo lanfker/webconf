@@ -1,0 +1,82 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!-- when using the mode "code", it's important to specify charset utf-8 -->
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <link href="/static/menu.css" rel="stylesheet" type="text/css">
+    
+</head>
+<body>
+
+    <div id="menu-outer">
+        <div class="table">
+            <ul id="horizontal-list">
+            <li><a href="/list/"><img src="/static/img/config.png" alt="Configurations" title="Configurations"/></a></li>
+            <li><a href="/files/"><img src="/static/img/up-download.png" alt="Upload/Download" title="Upload/Download"/></a></li>
+            <li><a href="/wifi/"><img src="/static/img/wifi.png" alt="WIFI Setup" title="WIFI Setup"/></a></li>
+            <li><a href="/reboot/" onclick="return confirm ('!!Reboot: Are you sure?')"><img src="/static/img/reboot.png"  alt="Reboot" title="Reboot" /> </a></li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+
+    {{if .Message}} 
+    <h2 style="color:green">CVDP says: {{.Message}}. </h2>
+    <h3 style="color:blue">Hit reboot button [<a href="/reboot/"><img height="30px" src="/static/img/reboot.png"  alt="Reboot" title="Reboot" /></a>] to make the change effective.</h3>
+    {{else}}
+    <form action="/wifi/" method="POST" > 
+        <table style="font-size:20px">
+            <tr>
+                <td>
+                    <label>SSID:</label>
+                </td>
+                <td>
+
+                    <input type="text" name="ssid" placeholder="unique wifi network name"  style="width:250px"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>Password</label>
+                </td>
+                <td>
+                    <input type="text" name="password" placeholder="show as plain text" style="width:250px" />
+                </td>
+            </tr>
+            <tr>
+                <td> 
+                    <label>Priority</label>
+                </td>
+                <td>
+                    <input type="text" name="priority" placeholder="only integers"  style="width:250px"/>
+                </td>
+            </tr>
+        </table>
+        <input type="submit" value="Set!" style="font-size: 20px"/>
+    </form>
+    {{end}}
+
+
+    {{ if .SSIDs}}
+    <br>
+    <br>
+    <h2> Available On-Board WI-FI Configurations</h2>
+        <table align="left" style="font-size:20px; ">
+            <tr align="left" style="font-size:20px; ">
+                <th>SSID</th>
+                <th>Password</th>
+                <th>Priority</th>
+                <th>Delete</th>
+            </tr>
+            {{range .SSIDs}}
+            <tr style="font-size:20px; padding-left: 20px">
+                <td>{{.SSID}}</td>
+                <td style="padding-left: 20px">{{.Psk}}</td>
+                <td align="center">{{.Priority}}</td>
+                <td align="center"><a href="/wifi/delete?ssid={{.SSID}}">Delete</a></td>
+            </tr>
+            {{end}}
+        </table>
+    {{end}}
+</body>
