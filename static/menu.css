@@ -1,22 +1,30 @@
- <style type="">
-        #menu-outer {
-            height: 84px;
-            /*background: url(images/bar-bg.jpg) repeat-x;*/
-        }
+ <style >
+    #menu-outer {
+        height: 84px;
+        /*background: url(images/bar-bg.jpg) repeat-x;*/
+    }
 
-        .table {
-            display: table;   /* Allow the centering to work */
-            margin: 0 auto;
-        }
+    .table {
+        display: table;   /* Allow the centering to work */
+        margin: 0 auto;
+    }
 
-        ul#horizontal-list {
-            min-width: 696px;
-            list-style: none;
-            padding-top: 20px;
-        }
-        ul#horizontal-list li {
-            display: inline;
-            margin-left: 40px;
-            font-size: 30px;
-        }
-    </style>
+    ul#horizontal-list {
+        min-width: 696px;
+        list-style: none;
+        padding-top: 20px;
+    }
+    ul#horizontal-list li {
+        display: inline;
+        margin-left: 40px;
+        font-size: 30px;
+    }
+
+    #editor { 
+        position: absolute;
+        top: 200px;
+        right: 0;
+        bottom: 0;
+        left: 40px;
+    }
+</style>

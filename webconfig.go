@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -15,6 +14,17 @@ import (
 
 	"cvdpweb/wpa"
 )
+
+const (
+	wpa_config_file = "wpa_supplicant.conf"
+	port            = ":8000"
+)
+
+var tmpl *template.Template
+
+func init() {
+	tmpl = template.Must(template.ParseGlob("templates/*.html"))
+}
 
 // CvdpConfig dummy
 type CvdpConfig struct {
@@ -58,12 +68,12 @@ func main() {
 	http.HandleFunc("/reboot/", rebootHandler)
 	http.HandleFunc("/wifi/", wifiHandler)
 	http.HandleFunc("/wifi/delete/", deleteWifiHandler)
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func deleteWifiHandler(w http.ResponseWriter, r *http.Request) {
 	ssid := r.URL.Query().Get("ssid")
-	wpaconf, _ := wpa.ParseFile("/etc/wpa_supplicant.conf")
+	wpaconf, _ := wpa.ParseFile(wpa_config_file)
 	length := len(wpaconf.SSIDs)
 	for k, v := range wpaconf.SSIDs {
 		if v.SSID == ssid {
@@ -72,27 +82,29 @@ func deleteWifiHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	ioutil.WriteFile("/etc/wpa_supplicant.conf", []byte(wpaconf.String()), 0755)
+	ioutil.WriteFile(wpa_config_file, []byte(wpaconf.String()), 0755)
 	http.Redirect(w, r, "/wifi/", http.StatusFound)
 }
 
 func wifiHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/wifi.html")
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	/*
+		tmpl, err := template.ParseFiles("templates/wifi.html")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+	*/
 	if r.Method != "POST" {
-		wpaconf, _ := wpa.ParseFile("/etc/wpa_supplicant.conf")
+		wpaconf, _ := wpa.ParseFile(wpa_config_file)
 		data := struct {
 			Message string
 			wpa.WPAConf
 		}{
 			WPAConf: *wpaconf,
 		}
-		tmpl.Execute(w, data)
+		tmpl.ExecuteTemplate(w, "wifi.html", data)
 	} else {
-		wpaconf, _ := wpa.ParseFile("/etc/wpa_supplicant.conf")
+		wpaconf, _ := wpa.ParseFile(wpa_config_file)
 
 		priority, _ := strconv.ParseInt(r.FormValue("priority"), 10, 64)
 		ssidconf := wpa.SSIDConf{SSID: r.FormValue("ssid"), Psk: r.FormValue("password"), Priority: priority}
@@ -100,7 +112,7 @@ func wifiHandler(w http.ResponseWriter, r *http.Request) {
 			if v.SSID == ssidconf.SSID {
 				wpaconf.SSIDs[k].Psk = ssidconf.Psk
 				wpaconf.SSIDs[k].Priority = ssidconf.Priority
-				ioutil.WriteFile("/etc/wpa_supplicant.conf", []byte(wpaconf.String()), 0755)
+				ioutil.WriteFile(wpa_config_file, []byte(wpaconf.String()), 0755)
 				data := struct {
 					Message string
 					wpa.WPAConf
@@ -108,7 +120,7 @@ func wifiHandler(w http.ResponseWriter, r *http.Request) {
 					Message: "SSID configuration updated!",
 					WPAConf: *wpaconf,
 				}
-				tmpl.Execute(w, data)
+				tmpl.ExecuteTemplate(w, "wifi.html", data)
 				return
 			}
 		}
@@ -122,20 +134,22 @@ func wifiHandler(w http.ResponseWriter, r *http.Request) {
 			WPAConf: *wpaconf,
 		}
 
-		ioutil.WriteFile("/etc/wpa_supplicant.conf", []byte(wpaconf.String()), 0755)
-		tmpl.Execute(w, data)
+		ioutil.WriteFile(wpa_config_file, []byte(wpaconf.String()), 0755)
+		tmpl.ExecuteTemplate(w, "wifi.html", data)
 	}
 }
 
 func rebootHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/reboot.html")
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	tmpl.Execute(w, nil)
+	/*
+		tmpl, err := template.ParseFiles("templates/reboot.html")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+	*/
+	tmpl.ExecuteTemplate(w, "reboot.html", nil)
 	cmd := exec.Command("reboot")
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -157,6 +171,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 
 		if len(base) != 0 {
 			filehandle, err := os.OpenFile(base+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0755)
+			defer filehandle.Close()
 			if err != nil {
 				fmt.Println("Cannot create the file: ", err.Error())
 				break
@@ -168,6 +183,7 @@ func fileHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			filehandle, err := os.OpenFile(handler.Filename, os.O_WRONLY|os.O_CREATE, 0755)
+			defer filehandle.Close()
 			if err != nil {
 				fmt.Println("Cannot create the file: ", err.Error())
 				break
@@ -239,12 +255,15 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/list.html")
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	tmpl.Execute(w, files)
+	/*
+		tmpl, err := template.ParseFiles("templates/list.html")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		tmpl.Execute(w, files)
+	*/
+	tmpl.ExecuteTemplate(w, "list.html", files)
 
 }
 
@@ -260,68 +279,66 @@ func activateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	tmpl, err := template.ParseFiles("templates/activate.html")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	/*
+		tmpl, err := template.ParseFiles("templates/activate.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	*/
 	conf, err = load(filename)
 	conf.Message = fmt.Sprintf("Configuration %s activated", filename)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, conf)
+	tmpl.ExecuteTemplate(w, "activate.html", conf)
+
+	//tmpl.Execute(w, conf)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request) {
 	filename := r.URL.Path[len("/save/"):]
-	var raw map[string]interface{}
 	contentBytes := []byte(r.FormValue("JSONText"))
+	fmt.Println(contentBytes)
 	if len(contentBytes) == 0 {
 		http.Error(w, "No changes available", http.StatusNoContent)
 		return
 	}
-	err := json.Unmarshal(contentBytes, &raw)
-	if err != nil {
-		http.Error(w, "Data posted are not valid JSON", http.StatusPartialContent)
-		return
-	}
-
-	indented, err := json.MarshalIndent(raw, "", "    ")
-	if err != nil {
-		http.Error(w, "Convert Post data from JSON to byte stream failed", http.StatusInternalServerError)
-		return
-	}
-
-	err = ioutil.WriteFile(filename, indented, 0755)
+	err := os.Remove(filename)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	//http.Redirect(w, r, "/save/"+filename, http.StatusFound)
-	tmpl, err := template.ParseFiles("templates/save.html")
+	f, err := os.OpenFile(filename, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0755)
 	if err != nil {
-		http.NotFound(w, r)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer f.Close()
+	f.Write(contentBytes)
+
 	conf, err := load(filename)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 	conf.Message = string("File saved")
-	tmpl.Execute(w, conf)
+	tmpl.ExecuteTemplate(w, "save.html", conf)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
 	filename := r.URL.Path[len("/edit/"):]
-	tmpl, err := template.ParseFiles("templates/edit.html")
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
+	/*
+		tmpl, err := template.ParseFiles("templates/edit.html")
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+	*/
 	conf, err := load(filename)
-	tmpl.Execute(w, conf)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	tmpl.ExecuteTemplate(w, "edit.html", conf)
 }

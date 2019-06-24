@@ -1,25 +1,7 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <!-- when using the mode "code", it's important to specify charset utf-8 -->
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-
-    <link href="/static/jsoneditor.min.css" rel="stylesheet" type="text/css">
-    <link href="/static/menu.css" rel="stylesheet" type="text/css">
-    <script src="/static/jsoneditor.min.js"></script>
-</head>
+{{template "header"}}
 <body>
-    <div id="menu-outer">
-        <div class="table">
-            <ul id="horizontal-list">
-            <li><a href="/list/"><img src="/static/img/config.png" alt="Configurations" title="Configurations"/></a></li>
-            <li><a href="/files/"><img src="/static/img/up-download.png" alt="Upload/Download" title="Upload/Download"/></a></li>
-            <li><a href="/wifi/"><img src="/static/img/wifi.png" alt="WIFI Setup" title="WIFI Setup"/></a></li>
-            <li><a href="/reboot/" onclick="return confirm ('!!Reboot: Are you sure?')"><img src="/static/img/reboot.png"  alt="Reboot" title="Reboot" /> </a></li>
-            </ul>
-        </div>
-    </div>
-    <hr>
+
+    {{template "menu"}}
 
     <form action="/save/{{.Filename}}" method="POST">    
         <textarea style="display:none" id="contentCopy" name="JSONText"></textarea>
@@ -27,16 +9,32 @@
     </form>
     <br>
 
-    <div id="jsoneditor" style="width: 50%; height: 90%;"></div>
+    <div id="editor" style="width: 50%; height: 90%;"></div>
     <script>
-        // create the editor
-        var container = document.getElementById("jsoneditor");
+        var editor = ace.edit ("editor");
+        editor.setTheme ("ace/theme/monokai");
+        editor.session.setMode ("ace/mode/javascript");
+        var config = JSON.parse ("{{.JSONText}}")
+        editor.setValue (JSON.stringify (config, null, 4), -1);
+        editor.setFontSize(20);
+        editor.on ("change", updateText)
+
+        function updateText () {
+            var txt = editor.getSession().getValue();
+            editor.getSession().setNewLineMode ("unix")
+            console.log ("text ength was:\n"+ txt);
+            document.getElementById ("contentCopy").innerText = txt; // txt has \n, but does not have \r.. 
+        }
+        /*
+        var container = document.getElementById("editor");
         var options = { onChange: updateText};
         var editor = new JSONEditor(container, options);
 
         function updateText () {
-            var txt = editor.getText()
-            document.getElementById ("contentCopy").innerText = txt
+            var txt = editor.getText();
+            console.log ("text ength was:\n"+ txt);
+            console.log ("text length was: "+ txt.length);
+            document.getElementById ("contentCopy").innerText = txt;
         }
         // set json
         var json = {{.JSONText}};
@@ -44,6 +42,7 @@
 
         // get json
         //var json = editor.get();
+        */
     </script>
 </body>
 </html>

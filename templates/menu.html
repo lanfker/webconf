@@ -1,0 +1,13 @@
+{{define "menu"}}
+    <div id="menu-outer">
+        <div class="table">
+            <ul id="horizontal-list">
+            <li><a href="/list/"><img src="/static/img/config.png" alt="Configurations" title="Configurations"/></a></li>
+            <li><a href="/files/"><img src="/static/img/up-download.png" alt="Upload/Download" title="Upload/Download"/></a></li>
+            <li><a href="/wifi/"><img src="/static/img/wifi.png" alt="WIFI Setup" title="WIFI Setup"/></a></li>
+            <li><a href="/reboot/" onclick="return confirm ('!!Reboot: Are you sure?')"><img src="/static/img/reboot.png"  alt="Reboot" title="Reboot" /> </a></li>
+            </ul>
+        </div>
+    </div>
+    <hr>
+{{end}}

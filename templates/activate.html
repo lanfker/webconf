@@ -1,23 +1,7 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-    <!-- when using the mode "code", it's important to specify charset utf-8 -->
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-    <link href="/static/menu.css" rel="stylesheet" type="text/css">
-  
-</head>
+{{template "header"}}
 <body>
-    <div id="menu-outer">
-        <div class="table">
-            <ul id="horizontal-list">
-            <li><a href="/list/"><img src="/static/img/config.png" alt="Configurations" title="Configurations"/></a></li>
-            <li><a href="/files/"><img src="/static/img/up-download.png" alt="Upload/Download" title="Upload/Download"/></a></li>
-            <li><a href="/wifi/"><img src="/static/img/wifi.png" alt="WIFI Setup" title="WIFI Setup"/></a></li>
-            <li><a href="/reboot/" onclick="return confirm ('!!Reboot: Are you sure?')"><img src="/static/img/reboot.png"  alt="Reboot" title="Reboot" /> </a></li>
-            </ul>
-        </div>
-    </div>
-    <hr> 
+
+    {{template "menu"}}
 
     {{ if .Message }} 
     <h2 style="color:green">CVDP says: {{.Message}}. </h2>
